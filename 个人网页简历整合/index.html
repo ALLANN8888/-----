@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>AIGC作品集 - 刘志康 | 视觉中心下移·梦幻粒子</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+        }
+
+        :root {
+            --c1: #00EEFF;
+            --c2: #7D00FF;
+            --c3: #FF00AA;
+            --c4: #0088FF;
+            --dark: #080B1A;
+            --glass: rgba(255,255,100,0.01);
+            --border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background: var(--dark);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        /* 梦幻星空背景 - 粒子超级丰富 */
+        #stars {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: radial-gradient(circle at center, #0a0f2a, #050714);
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* 额外动态流光粒子层 */
+        .nebula {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* 头像轨道容器 */
+        #avatarOrbit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 导航栏固定 */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: rgba(8, 11, 26, 0.7);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--c1), var(--c3), var(--c2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav a {
+            margin-left: 36px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.75);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 2.5px;
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .nav a:hover::after,
+        .nav a.active::after {
+            opacity: 1;
+        }
+
+        .nav a:hover, .nav a.active {
+            color: #fff;
+        }
+
+        /* 独立滚动容器 */
+        .page-scroll-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* 滚动条极简风格 */
+        .page-scroll-container::-webkit-scrollbar {
+            width: 5px;
+            background: transparent;
+        }
+        .page-scroll-container::-webkit-scrollbar-track {
+            background: rgba(30,30,50,0.2);
+            border-radius: 8px;
+        }
+        .page-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.25);
+            border-radius: 8px;
+        }
+
+        /* 首页激活时禁止滚动，完全固定 */
+        .page-scroll-container.home-active {
+            overflow: hidden !important;
+        }
+        .page-scroll-container.works-active, 
+        .page-scroll-container.about-active {
+            overflow-y: auto !important;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding-top: 90px;
+            padding-bottom: 60px;
+            animation: fade 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 首页样式 - 完全固定，无滚动条，内容整体下移至视觉中心 */
+        .home {
+            text-align: center;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 50px 40px;
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+            max-width: 900px;
+            width: 90%;
+            /* 核心调整：下移画面，让内容位于视觉中心（原margin: 5vh auto 改为 8vh auto，并微调） */
+            margin: 6vh auto 0 auto;
+            transform: translateY(3vh);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .avatar-box {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            margin: 0 auto 25px;
+            z-index: 5;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid transparent;
+            background: linear-gradient(var(--dark), var(--dark)), linear-gradient(135deg, var(--c1), var(--c3));
+            background-clip: content-box, border-box;
+            position: relative;
+            z-index: 3;
+            animation: avatarGlow 2.8s infinite alternate;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        @keyframes avatarGlow {
+            0% { box-shadow: 0 0 20px rgba(0,238,255,0.3); }
+            100% { box-shadow: 0 0 50px rgba(125,0,255,0.5); }
+        }
+
+        .home h2 {
+            font-size: 30px;
+            margin-bottom: 18px;
+            background: linear-gradient(90deg, var(--c1), var(--c3), var(--c2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .home p {
+            color: rgba(255,255,255,0.75);
+            max-width: 780px;
+            margin: 0 auto 28px;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .btn-wrap {
+            position: relative;
+            display: inline-block;
+            z-index: 10;
+        }
+        
+        .btn {
+            padding: 14px 44px;
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+            color: #fff;
+            border: none;
+            border-radius: 99px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.25s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(125,0,255,0.5);
+        }
+
+        /* 作品页面 */
+        .title {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 40px;
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .works {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.35s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(0,238,255,0.3);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            background: #0f1222;
+        }
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.45s;
+        }
+        .card:hover .card-img img {
+            transform: scale(1.08);
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .card-desc {
+            color: rgba(255,255,255,0.68);
+            font-size: 14px;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .card-link {
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 关于我页面 - 内容整体下移，视觉中心优化 */
+        .about {
+            max-width: 780px;
+            margin: 6vh auto 40px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 48px 52px;
+            border-radius: 32px;
+            width: 90%;
+            transform: translateY(2vh);
+        }
+
+        .about h3 {
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 28px 0 12px 0;
+            font-size: 24px;
+            font-weight: 600;
+            border-left: 3px solid var(--c1);
+            padding-left: 16px;
+        }
+
+        .about h3:first-of-type {
+            margin-top: 0;
+        }
+
+        .about p {
+            color: rgba(255,255,255,0.78);
+            font-size: 16px;
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        /* 粒子爆炸动画 - 魔方炸裂感 */
+        .shard {
+            position: absolute;
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 2000;
+            will-change: transform, opacity;
+        }
+
+        @keyframes shardCenter {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.15) rotate(var(--rot, 360deg));
+            }
+        }
+
+        @keyframes orbit {
+            0% { transform: translate(-50%, -50%) rotate(0deg) translateX(105px) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg) translateX(105px) rotate(-360deg); }
+        }
+
+        /* 梦幻粒子浮动动画 */
+        @keyframes starFloat {
+            0% { transform: translateY(0) translateX(0); opacity: 0.8; }
+            100% { transform: translateY(-120vh) translateX(20px); opacity: 0; }
+        }
+
+        @keyframes nebulaDrift {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+            100% { transform: translate(-15%, -15%) rotate(8deg); opacity: 0.6; }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.9; }
+        }
+
+        /* 响应式 */
+        @media (max-width: 800px) {
+            .works {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .nav {
+                padding: 16px 24px;
+            }
+            .nav a {
+                margin-left: 20px;
+                font-size: 14px;
+            }
+            .home {
+                padding: 40px 20px;
+                margin: 6vh auto 0 auto;
+                transform: translateY(2vh);
+            }
+            .about {
+                padding: 32px 24px;
+                transform: translateY(1vh);
+                margin: 5vh auto 40px;
+            }
+            .avatar-box {
+                width: 140px;
+                height: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 梦幻粒子背景层（超多粒子+星云效果） -->
+<div id="stars"></div>
+<div class="nebula" id="nebulaLayer"></div>
+
+<div class="nav">
+    <div class="logo">AIGC作品集 · 刘志康</div>
+    <div>
+        <a class="nav-link active" data-page="home">首页</a>
+        <a class="nav-link" data-page="works">作品展示</a>
+        <a class="nav-link" data-page="about">关于我</a>
+    </div>
+</div>
+
+<div class="page-scroll-container" id="scrollContainer">
+    <!-- 首页 - 头像内容完全保留，整体下移至视觉中心 -->
+    <div id="home-page" class="page active">
+        <div class="home">
+            <div class="avatar-box">
+                <div id="avatarOrbit"></div>
+                <div class="avatar">
+                    <img src="avatar.jpg" alt="头像">
+                </div>
+            </div>
+            <h2>欢迎来到我的 AIGC 作品集</h2>
+            <p>这里是我在 AIGC 应用综合实践课程中的作品汇总，
+            包含了个人创意名片、小红书爆款笔记、文创产品设计、个人学习助手智能体、AI 漫剧片段等作品，
+            记录了我从 AIGC 零基础到逐步掌握多模态 AIGC 工具的过程，希望能通过这些作品展示我的 AIGC 创作能力。</p>
+            
+            <div class="btn-wrap">
+                <button class="btn" id="viewBtn">查看作品</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 作品展示页面 -->
+    <div id="works-page" class="page">
+        <h2 class="title">课程作品展示</h2>
+        <div class="works">
+            <div class="card">
+                <div class="card-img">
+                    <img src="work1.jpg" alt="个人创意名片">
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">🤖 个人创意名片</h3>
+                    <p class="card-desc">使用AIGC工具设计个性化创意名片，融合个人风格与专业设计元素，完成完整名片创作。</p>
+                    <a href="https://postimg.cc/gallery/YmqCs8Q" target="_blank" class="card-link">查看作品</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">
+                    <img src="work2.jpg" alt="小红书爆款笔记">
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">📝 小红书爆款笔记</h3>
+                    <p class="card-desc">AI辅助创作小红书文案，包含爆款标题、优质内容、热门标签，符合平台流量逻辑。</p>
+                    <a href="https://www.xiaohongshu.com/explore/69e2b8b8000000001b003ff6?note_flow_source=wechat&xsec_token=CBIj9bM0EtKu6ySzwW_Iqld5_q69_h5swieA8lKScvVVY=" target="_blank" class="card-link">查看作品</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">
+                    <img src="work3.jpg" alt="文创产品设计">
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">🎨 文创产品设计</h3>
+                    <p class="card-desc">通过AI生成文创图案、产品外观与创意元素，设计兼具美观与实用性的文创作品。</p>
+                    <a href="https://postimg.cc/gallery/vZgQsNt" target="_blank" class="card-link">查看作品</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">
+                    <img src="work4.jpg" alt="个人学习助手智能体">
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">🧠 个人学习助手智能体</h3>
+                    <p class="card-desc">搭建AI学习助手智能体，支持学习规划、知识问答、资料整理等实用功能。</p>
+                    <a href="https://www.coze.cn/store/agent/7627297018075250723?bot_id=true&bid=6jolg4aj80g1i" target="_blank" class="card-link">查看作品</a>
+                </div>
+            </div>
+
+            <div class="card" style="grid-column: 1/-1;">
+                <div class="card-img">
+                    <img src="work5.jpg" alt="AI漫剧片段">
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">🎬 AI漫剧片段</h3>
+                    <p class="card-desc">使用多模态AIGC工具生成漫画角色、剧情与分镜片段，画面生动，创意完整。</p>
+                    <a href=" https://www.bilibili.com/video/BV1KYdjBcEyg/?share_source=copy_web&vd_source=87daa72c5591fa2ff813f7c17e6ede60" target="_blank" class="card-link">查看作品</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 关于我页面 - 内容整体下移，视觉重心优化 -->
+    <div id="about-page" class="page">
+        <h2 class="title">关于我</h2>
+        <div class="about">
+            <h3>基本信息</h3>
+            <p>姓名：刘志康</p>
+            <p>学号：2513202170119</p>
+            <p>学院：信息技术学院</p>
+            <p>班级：25人工智能</p>
+
+            <h3 style="margin-top:28px">学习心得</h3>
+            <p>通过AIGC应用综合实践课程，我从零基础开始学习多模态AI工具，逐步掌握了创意设计、内容创作、智能体搭建等技能。每一次作品都是一次成长，我深刻体会到AI技术对创意与学习的巨大帮助，未来会继续探索与实践，不断提升自身的AIGC创作能力。</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ======================== 页面切换 + 独立滚动控制 ========================
+    const homePage = document.getElementById('home-page');
+    const worksPage = document.getElementById('works-page');
+    const aboutPage = document.getElementById('about-page');
+    const scrollContainer = document.getElementById('scrollContainer');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    function switchPage(pageId) {
+        homePage.classList.remove('active');
+        worksPage.classList.remove('active');
+        aboutPage.classList.remove('active');
+        
+        if(pageId === 'home') {
+            homePage.classList.add('active');
+            scrollContainer.classList.remove('works-active', 'about-active');
+            scrollContainer.classList.add('home-active');
+            scrollContainer.style.overflow = 'hidden';
+        } else if(pageId === 'works') {
+            worksPage.classList.add('active');
+            scrollContainer.classList.remove('home-active', 'about-active');
+            scrollContainer.classList.add('works-active');
+            scrollContainer.style.overflow = 'auto';
+            if(scrollContainer.scrollTop > 0) scrollContainer.scrollTop = 0;
+        } else if(pageId === 'about') {
+            aboutPage.classList.add('active');
+            scrollContainer.classList.remove('home-active', 'works-active');
+            scrollContainer.classList.add('about-active');
+            scrollContainer.style.overflow = 'auto';
+            if(scrollContainer.scrollTop > 0) scrollContainer.scrollTop = 0;
+        }
+        
+        navLinks.forEach(link => {
+            const linkPage = link.getAttribute('data-page');
+            if(linkPage === pageId) link.classList.add('active');
+            else link.classList.remove('active');
+        });
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageId = link.getAttribute('data-page');
+            if(pageId) switchPage(pageId);
+        });
+    });
+
+    // ======================== 魔方炸裂按钮特效（超强粒子） ========================
+    let viewBtn = document.getElementById('viewBtn');
+    
+    function createEpicShatter(btnElement) {
+        if(!btnElement) return;
+        const parentWrap = btnElement.closest('.btn-wrap');
+        if(!parentWrap) return;
+        const rect = btnElement.getBoundingClientRect();
+        const colors = ['#00EEFF', '#7D00FF', '#FF00AA', '#0088FF', '#FFDD44', '#FF44AA', '#44FFAA', '#FFFFFF', '#FF6600'];
+        const particleCount = 160;
+        
+        for(let i = 0; i < particleCount; i++) {
+            const shard = document.createElement('div');
+            shard.className = 'shard';
+            const size = Math.random() * 7 + 2;
+            shard.style.width = size + 'px';
+            shard.style.height = size + 'px';
+            shard.style.background = colors[Math.floor(Math.random() * colors.length)];
+            const shape = Math.random();
+            if(shape < 0.7) shard.style.borderRadius = '2px';
+            else if(shape < 0.85) shard.style.borderRadius = '50%';
+            else shard.style.borderRadius = '0px';
+            
+            shard.style.left = (rect.width / 2) + 'px';
+            shard.style.top = (rect.height / 2) + 'px';
+            shard.style.position = 'absolute';
+            shard.style.boxShadow = `0 0 6px ${shard.style.background}`;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 160 + 40;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            const rot = Math.random() * 720 - 360;
+            shard.style.setProperty('--x', tx + 'px');
+            shard.style.setProperty('--y', ty + 'px');
+            shard.style.setProperty('--rot', rot + 'deg');
+            const duration = 0.55 + Math.random() * 0.2;
+            shard.style.animation = `shardCenter ${duration}s cubic-bezier(0.25, 0.9, 0.4, 1.2) forwards`;
+            parentWrap.appendChild(shard);
+            setTimeout(() => shard.remove(), 750);
+        }
+        
+        for(let i = 0; i < 40; i++) {
+            const spark = document.createElement('div');
+            spark.className = 'shard';
+            const sz = Math.random() * 4 + 1;
+            spark.style.width = sz + 'px';
+            spark.style.height = sz + 'px';
+            spark.style.background = `rgba(255, 200, 100, ${Math.random() * 0.8 + 0.3})`;
+            spark.style.borderRadius = '50%';
+            spark.style.left = (rect.width / 2) + 'px';
+            spark.style.top = (rect.height / 2) + 'px';
+            spark.style.position = 'absolute';
+            const angle2 = Math.random() * Math.PI * 2;
+            const dist2 = Math.random() * 120 + 30;
+            const tx2 = Math.cos(angle2) * dist2;
+            const ty2 = Math.sin(angle2) * dist2;
+            spark.style.setProperty('--x', tx2 + 'px');
+            spark.style.setProperty('--y', ty2 + 'px');
+            spark.style.animation = `shardCenter 0.5s ease-out forwards`;
+            parentWrap.appendChild(spark);
+            setTimeout(() => spark.remove(), 600);
+        }
+    }
+    
+    function initHomeButton() {
+        if(viewBtn) {
+            const newBtn = viewBtn.cloneNode(true);
+            viewBtn.parentNode.replaceChild(newBtn, viewBtn);
+            viewBtn = newBtn;
+            viewBtn.addEventListener('click', function(e) {
+                viewBtn.style.transform = 'scale(1.65)';
+                viewBtn.style.transition = 'transform 0.1s cubic-bezier(0.2, 1.2, 0.4, 1), opacity 0.12s ease';
+                setTimeout(() => {
+                    viewBtn.style.opacity = '0';
+                    viewBtn.style.transform = 'scale(0.6)';
+                }, 110);
+                
+                createEpicShatter(viewBtn);
+                
+                setTimeout(() => {
+                    switchPage('works');
+                    resetButtonAfterShard();
+                }, 330);
+            });
+        }
+    }
+    
+    function resetButtonAfterShard() {
+        const wrap = document.querySelector('.btn-wrap');
+        if(wrap) {
+            wrap.innerHTML = `<button class="btn" id="viewBtn">查看作品</button>`;
+            viewBtn = document.getElementById('viewBtn');
+            initHomeButton();
+        }
+    }
+    
+    // ======================== 头像轨道粒子 ========================
+    const orbitContainer = document.getElementById('avatarOrbit');
+    if(orbitContainer) {
+        const orbitColors = ['#00EEFF', '#7D00FF', '#FF00AA', '#0088FF', '#ffffff', '#FFAA44'];
+        for(let i = 0; i < 90; i++) {
+            const particle = document.createElement('div');
+            const size = Math.random() * 4.5 + 1.2;
+            particle.style.position = 'absolute';
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.background = orbitColors[Math.floor(Math.random() * orbitColors.length)];
+            particle.style.borderRadius = '50%';
+            particle.style.opacity = Math.random() * 0.85 + 0.2;
+            particle.style.left = '50%';
+            particle.style.top = '50%';
+            particle.style.transform = 'translate(-50%, -50%)';
+            const duration = Math.random() * 9 + 5.5;
+            particle.style.animation = `orbit ${duration}s linear infinite`;
+            particle.style.animationDelay = -Math.random() * duration + 's';
+            orbitContainer.appendChild(particle);
+        }
+    }
+    
+    // ======================== 梦幻粒子背景（超丰富） ========================
+    const starField = document.getElementById('stars');
+    const nebulaLayerEl = document.getElementById('nebulaLayer');
+    
+    function generateRichStars() {
+        for(let i = 0; i < 520; i++) {
+            const star = document.createElement('div');
+            star.style.position = 'absolute';
+            const sz = Math.random() * 4 + 0.8;
+            star.style.width = sz + 'px';
+            star.style.height = sz + 'px';
+            const colorChoice = Math.random();
+            if(colorChoice < 0.55) star.style.background = `rgba(255, 255, 255, ${Math.random() * 0.7 + 0.2})`;
+            else if(colorChoice < 0.8) star.style.background = `rgba(0, 238, 255, ${Math.random() * 0.7 + 0.3})`;
+            else star.style.background = `rgba(255, 0, 170, ${Math.random() * 0.6 + 0.2})`;
+            star.style.borderRadius = '50%';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.opacity = Math.random() * 0.9;
+            star.style.animation = `starFloat ${Math.random() * 50 + 25}s linear infinite`;
+            star.style.animationDelay = Math.random() * 35 + 's';
+            starField.appendChild(star);
+        }
+    }
+    
+    function addGlowParticles() {
+        for(let i = 0; i < 180; i++) {
+            const glow = document.createElement('div');
+            glow.style.position = 'absolute';
+            glow.style.width = Math.random() * 10 + 3 + 'px';
+            glow.style.height = glow.style.width;
+            glow.style.background = `radial-gradient(circle, rgba(0,238,255,0.45), rgba(125,0,255,0.1))`;
+            glow.style.borderRadius = '50%';
+            glow.style.left = Math.random() * 100 + '%';
+            glow.style.top = Math.random() * 100 + '%';
+            glow.style.filter = 'blur(4px)';
+            glow.style.animation = `starFloat ${Math.random() * 40 + 22}s linear infinite`;
+            glow.style.animationDelay = Math.random() * 30 + 's';
+            starField.appendChild(glow);
+        }
+    }
+    
+    function createNebula() {
+        for(let i = 0; i < 8; i++) {
+            const cloud = document.createElement('div');
+            cloud.style.position = 'absolute';
+            cloud.style.width = Math.random() * 500 + 250 + 'px';
+            cloud.style.height = Math.random() * 350 + 180 + 'px';
+            cloud.style.background = `radial-gradient(circle, rgba(0, 68, 255, 0.18), rgba(125, 0, 255, 0.06), transparent)`;
+            cloud.style.borderRadius = '50%';
+            cloud.style.left = Math.random() * 100 + '%';
+            cloud.style.top = Math.random() * 100 + '%';
+            cloud.style.filter = 'blur(45px)';
+            cloud.style.animation = `nebulaDrift ${Math.random() * 60 + 40}s infinite alternate`;
+            cloud.style.pointerEvents = 'none';
+            nebulaLayerEl.appendChild(cloud);
+        }
+    }
+    
+    generateRichStars();
+    addGlowParticles();
+    createNebula();
+    
+    setInterval(() => {
+        if(starField.children.length < 600) {
+            for(let k = 0; k < 5; k++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.background = `rgba(0, 238, 255, ${Math.random() * 0.7 + 0.2})`;
+                star.style.borderRadius = '50%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = '110%';
+                star.style.opacity = Math.random() * 0.8;
+                star.style.animation = `starFloat ${Math.random() * 28 + 18}s linear forwards`;
+                starField.appendChild(star);
+                setTimeout(() => star.remove(), 26000);
+            }
+        }
+    }, 900);
+    
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+        .twinkle-star {
+            animation: twinkle 3s infinite ease-in-out;
+        }
+    `;
+    document.head.appendChild(styleSheet);
+    for(let i=0;i<120;i++) {
+        const twinkleStar = document.createElement('div');
+        twinkleStar.style.position = 'absolute';
+        twinkleStar.style.width = Math.random()*2.5+1 + 'px';
+        twinkleStar.style.height = twinkleStar.style.width;
+        twinkleStar.style.background = `#ffffff`;
+        twinkleStar.style.borderRadius = '50%';
+        twinkleStar.style.left = Math.random()*100 + '%';
+        twinkleStar.style.top = Math.random()*100 + '%';
+        twinkleStar.style.opacity = Math.random()*0.6+0.2;
+        twinkleStar.classList.add('twinkle-star');
+        starField.appendChild(twinkleStar);
+    }
+    
+    // 初始化
+    switchPage('home');
+    initHomeButton();
+    document.body.style.overflow = 'hidden';
+</script>
+</body>
+</html>
+
+
+
